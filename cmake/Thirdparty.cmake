@@ -218,7 +218,8 @@ if (TARS_SSL)
                 DOWNLOAD_DIR ${CMAKE_SOURCE_DIR}/download
                 PREFIX ${CMAKE_BINARY_DIR}
                 INSTALL_DIR ${CMAKE_SOURCE_DIR}
-                CONFIGURE_COMMAND perl Configure --prefix=${CMAKE_BINARY_DIR}/src/babassl --openssldir=ssl VC-WIN64A no-asm
+#                CONFIGURE_COMMAND perl Configure --prefix=${CMAKE_BINARY_DIR}/src/babassl --openssldir=ssl VC-WIN64A no-asm
+                CONFIGURE_COMMAND perl Configure --prefix=${CMAKE_BINARY_DIR}/src/babassl --openssldir=ssl VC-WIN32 no-asm no-shared
                 SOURCE_DIR ${CMAKE_BINARY_DIR}/src/babassl-lib
                 BUILD_IN_SOURCE 1
                 BUILD_COMMAND nmake
