@@ -203,9 +203,9 @@ endif ()
 
 
 if (TARS_SSL)
-    set(SSL_DIR "${THIRDPARTY_PATH}/openssl")
-    set(SSL_DIR_INC "${THIRDPARTY_PATH}/openssl/include/")
-    set(SSL_DIR_LIB "${THIRDPARTY_PATH}/openssl/lib")
+    set(SSL_DIR "${THIRDPARTY_PATH}/babassl")
+    set(SSL_DIR_INC "${THIRDPARTY_PATH}/babassl/include/")
+    set(SSL_DIR_LIB "${THIRDPARTY_PATH}/babassl/lib")
     include_directories(${SSL_DIR_INC})
     link_directories(${SSL_DIR_LIB})
 
@@ -214,37 +214,37 @@ if (TARS_SSL)
         set(LIB_CRYPTO "libcrypto")
 
         ExternalProject_Add(ADD_${LIB_SSL}
-                URL http://cdn.tarsyun.com/src/openssl-1.1.1l.tar.gz
+                URL https://github.com/BabaSSL/BabaSSL/archive/refs/tags/8.2.1.tar.gz
                 DOWNLOAD_DIR ${CMAKE_SOURCE_DIR}/download
                 PREFIX ${CMAKE_BINARY_DIR}
                 INSTALL_DIR ${CMAKE_SOURCE_DIR}
-                CONFIGURE_COMMAND perl Configure --prefix=${CMAKE_BINARY_DIR}/src/openssl --openssldir=ssl VC-WIN64A no-asm
-                SOURCE_DIR ${CMAKE_BINARY_DIR}/src/openssl-lib
+                CONFIGURE_COMMAND perl Configure --prefix=${CMAKE_BINARY_DIR}/src/babassl --openssldir=ssl VC-WIN64A no-asm
+                SOURCE_DIR ${CMAKE_BINARY_DIR}/src/babassl-lib
                 BUILD_IN_SOURCE 1
                 BUILD_COMMAND nmake
                 INSTALL_COMMAND nmake install_sw
-                URL_MD5 ac0d4387f3ba0ad741b0580dd45f6ff3
+                URL_MD5 827463a7c49c0c50cfc4d9616c073ddc
                 )
     else ()
         set(LIB_SSL "ssl")
         set(LIB_CRYPTO "crypto")
 
         ExternalProject_Add(ADD_${LIB_SSL}
-                URL http://cdn.tarsyun.com/src/openssl-1.1.1l.tar.gz
+                URL https://github.com/BabaSSL/BabaSSL/archive/refs/tags/8.2.1.tar.gz
                 DOWNLOAD_DIR ${CMAKE_SOURCE_DIR}/download
                 PREFIX ${CMAKE_BINARY_DIR}
                 INSTALL_DIR ${CMAKE_SOURCE_DIR}
-                CONFIGURE_COMMAND ./config --prefix=${CMAKE_BINARY_DIR}/src/openssl --openssldir=ssl no-shared
-                SOURCE_DIR ${CMAKE_BINARY_DIR}/src/openssl-lib
+                CONFIGURE_COMMAND ./config --prefix=${CMAKE_BINARY_DIR}/src/babassl --openssldir=ssl no-shared
+                SOURCE_DIR ${CMAKE_BINARY_DIR}/src/babassl-lib
                 BUILD_IN_SOURCE 1
                 BUILD_COMMAND make
                 INSTALL_COMMAND make install_sw
-                URL_MD5 ac0d4387f3ba0ad741b0580dd45f6ff3
+                URL_MD5 827463a7c49c0c50cfc4d9616c073ddc
                 )
 
     endif ()
 
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/src/openssl/ DESTINATION thirdparty)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/src/babassl/ DESTINATION thirdparty)
 
     add_dependencies(thirdparty ADD_${LIB_SSL})
 endif ()
