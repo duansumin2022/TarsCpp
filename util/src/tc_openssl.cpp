@@ -269,7 +269,123 @@ void TC_OpenSSL::initialize()
 	}
 }
 
-shared_ptr<TC_OpenSSL::CTX> TC_OpenSSL::newCtx(const std::string& cafile, const std::string& certfile, const std::string& keyfile, bool verifyClient, const string &ciphers)
+extern "C" int verify_cb(int,X509_STORE_CTX*){return 1;}
+
+shared_ptr<TC_OpenSSL::CTX> TC_OpenSSL::newCtxServer(const std::string& cafile, const std::string& certfile, const std::string& keyfile, bool verifyClient, const string &ciphers)
+{
+	initialize();
+    // SSL_CTX* ctx = SSL_CTX_new(TLS_server_method());
+	SSL_CTX* ctx = SSL_CTX_new(TLS_method());
+	if (!ctx)
+		return NULL;
+    SSL_CTX_clear_mode(ctx, SSL_MODE_AUTO_RETRY);
+	SSL_CTX_set_mode(ctx, SSL_MODE_AUTO_RETRY);
+	SSL_CTX_set_quiet_shutdown(ctx,1);
+    SSL_CTX_set_min_proto_version(ctx, TLS1_3_VERSION);
+    SSL_CTX_set_max_proto_version(ctx, TLS1_3_VERSION);
+	SSL_CTX_enable_sm_tls13_strict(ctx);
+
+#define RETURN_IF_FAIL(call) \
+    if ((call) <= 0) { \
+        ERR_print_errors_fp(stderr); \
+        return NULL;\
+    }
+
+	int mode = SSL_VERIFY_NONE;
+	if (verifyClient)
+		mode |= SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
+	if (!cafile.empty())
+		mode |= SSL_VERIFY_PEER;
+
+
+	SSL_CTX_set_verify( ctx, 7, verify_cb);
+
+	SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_OFF);
+	SSL_CTX_clear_options(ctx, SSL_OP_LEGACY_SERVER_CONNECT);
+	SSL_CTX_clear_options(ctx, SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION);
+
+	RETURN_IF_FAIL (SSL_CTX_set_session_id_context(ctx, (const unsigned char*)ctx, sizeof ctx));
+	if (!cafile.empty())
+		RETURN_IF_FAIL (SSL_CTX_load_verify_locations(ctx, cafile.data(), NULL));
+
+	// 客户端可以不提供证书的
+	if (!certfile.empty())
+		RETURN_IF_FAIL (SSL_CTX_use_certificate_file(ctx, certfile.data(), SSL_FILETYPE_PEM));
+
+	if (!keyfile.empty())
+	{
+		RETURN_IF_FAIL (SSL_CTX_use_PrivateKey_file(ctx, keyfile.data(), SSL_FILETYPE_PEM));
+		RETURN_IF_FAIL (SSL_CTX_check_private_key(ctx));
+	}
+
+	if(!ciphers.empty()) {
+		RETURN_IF_FAIL (SSL_CTX_set_cipher_list(ctx, ciphers.c_str()));
+	}
+#undef RETURN_IF_FAIL
+
+	return std::make_shared<TC_OpenSSL::CTX>(ctx);
+}
+
+shared_ptr<TC_OpenSSL::CTX> TC_OpenSSL::newCtxClient(const std::string& cafile, const std::string& certfile, const std::string& keyfile, bool verifyClient, const string &ciphers)
+{
+	initialize();
+
+	//SSL_CTX* ctx = SSL_CTX_new(SSLv23_method());
+	SSL_CTX* ctx = SSL_CTX_new(TLS_client_method());
+	if (!ctx)
+		return NULL;
+
+    SSL_CTX_clear_mode(ctx, SSL_MODE_AUTO_RETRY);
+	SSL_CTX_set_mode(ctx, SSL_MODE_AUTO_RETRY);
+	SSL_CTX_set_quiet_shutdown(ctx,1);
+    SSL_CTX_set_min_proto_version(ctx, TLS1_3_VERSION);
+    SSL_CTX_set_max_proto_version(ctx, TLS1_3_VERSION);
+
+	SSL_CTX_set_ciphersuites(ctx,"TLS_SM4_GCM_SM3");
+
+
+#define RETURN_IF_FAIL(call) \
+    if ((call) <= 0) { \
+        ERR_print_errors_fp(stderr); \
+        return NULL;\
+    }
+
+	int mode = SSL_VERIFY_NONE;
+	if (verifyClient)
+		mode |= SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
+	if (!cafile.empty())
+		mode |= SSL_VERIFY_PEER;
+
+	//SSL_CTX_set_verify(ctx, mode, NULL);
+	SSL_CTX_set_verify( ctx, SSL_VERIFY_PEER, verify_cb);
+
+	SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_OFF);
+	SSL_CTX_clear_options(ctx, SSL_OP_LEGACY_SERVER_CONNECT);
+	SSL_CTX_clear_options(ctx, SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION);
+
+	RETURN_IF_FAIL (SSL_CTX_set_session_id_context(ctx, (const unsigned char*)ctx, sizeof ctx));
+	if (!cafile.empty())
+		RETURN_IF_FAIL (SSL_CTX_load_verify_locations(ctx, cafile.data(), NULL));
+
+	// 客户端可以不提供证书的
+	if (!certfile.empty())
+		RETURN_IF_FAIL (SSL_CTX_use_certificate_file(ctx, certfile.data(), SSL_FILETYPE_PEM));
+
+	if (!keyfile.empty())
+	{
+		RETURN_IF_FAIL (SSL_CTX_use_PrivateKey_file(ctx, keyfile.data(), SSL_FILETYPE_PEM));
+		RETURN_IF_FAIL (SSL_CTX_check_private_key(ctx));
+	}
+
+	if(!ciphers.empty()) {
+		RETURN_IF_FAIL (SSL_CTX_set_cipher_list(ctx, ciphers.c_str()));
+	}
+#undef RETURN_IF_FAIL
+
+	return std::make_shared<TC_OpenSSL::CTX>(ctx);
+}
+
+shared_ptr<TC_OpenSSL::CTX> TC_OpenSSL::newCtxRSA(const std::string& cafile, const std::string& certfile, const std::string& keyfile, bool verifyClient, const string &ciphers)
 {
 	initialize();
 
@@ -317,6 +433,15 @@ shared_ptr<TC_OpenSSL::CTX> TC_OpenSSL::newCtx(const std::string& cafile, const 
 	return std::make_shared<TC_OpenSSL::CTX>(ctx);
 }
 
+shared_ptr<TC_OpenSSL::CTX> TC_OpenSSL::newCtx(const std::string& cafile, const std::string& certfile, const std::string& keyfile, bool verifyClient, const string &ciphers, int type){
+	if(type == 1){//gm证书 TLS client
+		return newCtxClient(cafile, certfile, keyfile,verifyClient, ciphers);
+	} else if(type == 2){//gm证书 TLS server
+		return newCtxServer(cafile, certfile, keyfile,verifyClient, ciphers);
+	}
+	//默认是RSA证书
+	return newCtxRSA(cafile, certfile, keyfile,verifyClient, ciphers);
+}
 
 shared_ptr<TC_OpenSSL> TC_OpenSSL::newSSL(const std::shared_ptr<TC_OpenSSL::CTX> &ctx)
 {

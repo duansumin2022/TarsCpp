@@ -1147,7 +1147,8 @@ void Application::initializeServer()
 	ServerConfig::Ciphers           = _conf.get("/tars/application/server<ciphers>");
 
 	if(!ServerConfig::Cert.empty()) {
-		_ctx = TC_OpenSSL::newCtx(ServerConfig::CA, ServerConfig::Cert, ServerConfig::Key, ServerConfig::VerifyClient, ServerConfig::Ciphers);
+		TLOGDEBUG(" Application initializeServer TC_OpenSSL::newCtx 1"<< endl);
+		_ctx = TC_OpenSSL::newCtx(ServerConfig::CA, ServerConfig::Cert, ServerConfig::Key, ServerConfig::VerifyClient, ServerConfig::Ciphers, 2);
 
 		if (!_ctx) {
 			TLOGERROR("[load server ssl error, ca:" << ServerConfig::CA << endl);
@@ -1329,7 +1330,8 @@ void Application::setAdapter(TC_EpollServer::BindAdapterPtr& adapter, const stri
 			_conf.get("/tars/application/server/" + name + "<verifyclient>", "0") == "0" ? false : true;
 		string ciphers = _conf.get("/tars/application/server/" + name + "<ciphers>");
 
-		shared_ptr<TC_OpenSSL::CTX> ctx = TC_OpenSSL::newCtx(ca, cert, key, verifyClient, ciphers);
+		TLOGDEBUG("Application setAdapter TC_OpenSSL::newCtx 2"<< endl);
+		shared_ptr<TC_OpenSSL::CTX> ctx = TC_OpenSSL::newCtx(ca, cert, key, verifyClient, ciphers, 2);
 
 		if (!ctx) {
 			TLOGERROR("load server ssl error, cert:" << cert << endl);

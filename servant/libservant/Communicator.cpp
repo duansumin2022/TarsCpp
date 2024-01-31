@@ -154,6 +154,7 @@ shared_ptr<TC_OpenSSL> Communicator::newClientSSL(const string & objName)
 	}
 
 	if(!_ctx) {
+		TLOGDEBUG("Communicator::newClientSSL  newCtx 2" << endl);
 		_ctx = TC_OpenSSL::newCtx("", "", "", false, "");
 	}
 
@@ -195,7 +196,8 @@ void Communicator::setProperty(TC_Config& conf, const string& domain/* = CONFIG_
 
 			if(!data["ca"].empty())
 			{
-				shared_ptr<TC_OpenSSL::CTX> ctx = TC_OpenSSL::newCtx( data["ca"], data["cert"], data["key"], false, data["ciphers"]);
+				TLOGDEBUG("Communicator::setProperty  newCtx 3" << endl);
+				shared_ptr<TC_OpenSSL::CTX> ctx = TC_OpenSSL::newCtx( data["ca"], data["cert"], data["key"], false, data["ciphers"], 1);
 				if(!ctx)
 				{
 					TLOGERROR("[load obj:" << auths[i] << ", ssl error, ca:" << data["ca"] << endl);
@@ -303,7 +305,8 @@ void Communicator::initialize()
 	string ciphers  = getProperty("ciphers");
 
 	if(!ca.empty()) {
-		_ctx = TC_OpenSSL::newCtx(ca, cert, key, false, ciphers);
+		TLOGDEBUG("Communicator::initialize  newCtx 1" << endl);
+		_ctx = TC_OpenSSL::newCtx(ca, cert, key, false, ciphers, 1);
 
         if (!_ctx)
         {
