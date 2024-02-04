@@ -443,6 +443,17 @@ shared_ptr<TC_OpenSSL::CTX> TC_OpenSSL::newCtx(const std::string& cafile, const 
 	return newCtxRSA(cafile, certfile, keyfile,verifyClient, ciphers);
 }
 
+//add by dsm 2024/1/31
+void TC_OpenSSL::releaseCtx(const std::shared_ptr<TC_OpenSSL::CTX> &ctx)
+{
+	if(ctx->ctx){
+		SSL_CTX* pCtx = ctx->ctx;
+		SSL_CTX_free(pCtx);
+		pCtx = NULL;
+		ctx->ctx = NULL;
+	}
+}
+
 shared_ptr<TC_OpenSSL> TC_OpenSSL::newSSL(const std::shared_ptr<TC_OpenSSL::CTX> &ctx)
 {
 	initialize();

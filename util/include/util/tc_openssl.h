@@ -80,6 +80,8 @@ public:
 	static shared_ptr<CTX> newCtxServer(const std::string& cafile, const std::string& certfile, const std::string& keyfile, bool verifyClient, const string &ciphers);
 	static shared_ptr<CTX> newCtxClient(const std::string& cafile, const std::string& certfile, const std::string& keyfile, bool verifyClient, const string &ciphers);
 
+	////add by dsm 2024/1/31
+	static void releaseCtx(const std::shared_ptr<TC_OpenSSL::CTX> &ctx);
 
 	/**
 	 * new ssl

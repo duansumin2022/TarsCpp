@@ -62,6 +62,7 @@ AdapterProxy::AdapterProxy(ObjectProxy * pObjectProxy, const EndpointInfo &ep, C
 //, _connTimeout(false)
 , _connExc(false)
 , _connExcCnt(0)
+, _staticWeight(0)
 , _timeoutLogFlag(true)
 , _noSendQueueLimit(100000)
 , _id((++_idGen))

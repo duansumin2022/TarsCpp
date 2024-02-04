@@ -82,6 +82,14 @@ Communicator::~Communicator()
 #if TARGET_PLATFORM_WINDOWS
     WSACleanup();
 #endif
+
+//add by dsm 2024/1/31
+#if TARS_SSL
+    if(_ctx){
+        TC_OpenSSL::releaseCtx(_ctx);
+    }
+#endif
+
 }
 
 bool Communicator::isTerminating()
